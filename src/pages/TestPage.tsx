@@ -5,6 +5,12 @@ import { QuestionCard } from '../components/QuestionCard';
 import { BackButton } from '../components/BackButton';
 import { useTestStore } from '../store/testStore';
 
+interface TestPageProps {
+  version: 'basic' | 'standard' | 'detailed';
+  title: string;
+  description: string;
+}
+
 export const TestPage: React.FC = () => {
   const navigate = useNavigate();
   const { version } = useParams<{ version: string }>();
@@ -87,3 +93,19 @@ export const TestPage: React.FC = () => {
     </div>
   );
 };
+
+export function TestPage({ version, title, description }: TestPageProps) {
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="bg-white shadow rounded-lg p-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          MBTI测试 - {title}
+        </h1>
+        <p className="text-gray-600 mb-6">
+          {description}
+        </p>
+        {/* 测试题目内容 */}
+      </div>
+    </div>
+  );
+}

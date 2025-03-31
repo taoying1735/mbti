@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link, HashRouter } from 'react-router-dom';
-import { Brain } from 'lucide-react';
+import { Brain, History } from 'lucide-react';  // 添加 History 图标
 import { HomePage } from './pages/HomePage';
 import { TestPage } from './pages/TestPage';
 import { ResultPage } from './pages/ResultPage';
@@ -22,13 +22,25 @@ function App() {
                   </span>
                 </Link>
               </div>
+              {/* 添加历史记录入口 */}
+              <div className="flex items-center">
+                <Link 
+                  to="/history" 
+                  className="flex items-center text-gray-600 hover:text-blue-600"
+                >
+                  <History className="h-6 w-6" />
+                  <span className="ml-2">历史记录</span>
+                </Link>
+              </div>
             </div>
           </div>
         </nav>
 
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/test/:version" element={<TestPage />} />
+          <Route path="/test/basic" element={<TestPage version="basic" title="简单版" description="20个测试题目" />} />
+          <Route path="/test/standard" element={<TestPage version="standard" title="标准版" description="45个测试题目" />} />
+          <Route path="/test/detailed" element={<TestPage version="detailed" title="详细版" description="93个测试题目" />} />
           <Route path="/result/:id" element={<ResultPage />} />
           <Route path="/report/:id" element={<DetailedReportPage />} />
           <Route path="/history" element={<HistoryPage />} />
