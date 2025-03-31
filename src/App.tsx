@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, HashRouter } from 'react-router-dom';
 import { Brain } from 'lucide-react';
 import { HomePage } from './pages/HomePage';
 import { TestPage } from './pages/TestPage';
@@ -9,7 +9,7 @@ import { HistoryPage } from './pages/HistoryPage';
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="min-h-screen bg-gray-50">
         <nav className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,7 +34,7 @@ function App() {
           <Route path="/history" element={<HistoryPage />} />
         </Routes>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
