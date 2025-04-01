@@ -5,7 +5,7 @@ import {
   Coffee, Shield, Lightbulb, Users, Heart, Star, Award, Compass,
   Palette, Crown, ChevronRight, Sparkles, LineChart, PieChart,
   BarChart, CheckCircle2, XCircle, Rocket, Glasses, Smile,
-  Download, Check
+  Download, Check, Home, Share2
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { typeDescriptions } from '../data/typeDescriptions';
@@ -16,6 +16,7 @@ export const DetailedReportPage: React.FC = () => {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -59,6 +60,12 @@ export const DetailedReportPage: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleShare = () => {
+    // Implement the share functionality
+    console.log('Sharing report');
+    setCopied(true);
   };
 
   // 性格维度解释
@@ -520,6 +527,59 @@ export const DetailedReportPage: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* 底部按钮容器 */}
+        <div className="flex justify-center gap-4 mt-8">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
+          >
+            <Home className="w-5 h-5 mr-2" />
+            返回首页
+          </button>
+          
+          <button
+            onClick={handleShare}
+            className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            {copied ? (
+              <Check className="w-5 h-5 mr-2" />
+            ) : (
+              <Share2 className="w-5 h-5 mr-2" />
+            )}
+            {copied ? '已复制' : '分享报告'}
+          </button>
+          
+          <button
+            onClick={handleSaveReport}
+            disabled={saving}
+            className={`flex items-center px-6 py-3 ${
+              saving 
+                ? 'bg-green-500 text-white' 
+                : 'bg-orange-600 hover:bg-orange-700 text-white'
+            } rounded-lg transition-colors`}
+          >
+            {saving ? (
+              <>
+                <Check className="w-5 h-5 mr-2" />
+                保存中...
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5 mr-2" />
+                保存报告
+              </>
+            )}
+          </button>
+          
+          <button
+            onClick={() => navigate(`/result/${id}`)}
+            className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            返回结果页
+          </button>
         </div>
       </div>
     </div>

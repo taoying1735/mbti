@@ -6,14 +6,13 @@ import { BackButton } from '../components/BackButton';
 import { useTestStore } from '../store/testStore';
 
 interface TestPageProps {
-  version: 'basic' | 'standard' | 'detailed';
+  version: string;
   title: string;
   description: string;
 }
 
-export const TestPage: React.FC = () => {
+export const TestPage: React.FC<TestPageProps> = ({ version, title, description }) => {
   const navigate = useNavigate();
-  const { version } = useParams<{ version: string }>();
   const {
     currentQuestionIndex,
     answers,
@@ -94,7 +93,7 @@ export const TestPage: React.FC = () => {
   );
 };
 
-export function TestPage({ version, title, description }: TestPageProps) {
+export function TestPageContent({ version, title, description }: TestPageProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="bg-white shadow rounded-lg p-6">

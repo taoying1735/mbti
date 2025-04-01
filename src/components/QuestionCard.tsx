@@ -30,19 +30,17 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full">
-      <h2 className="text-xl font-semibold mb-6">{question.text}</h2>
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <h3 className="text-xl font-semibold mb-6 text-center">
+        {question.text}
+      </h3>
       
-      <div className="space-y-4">
+      <div className="flex flex-col items-center w-full space-y-3">
         {options.map((option) => (
           <button
             key={option.value}
             onClick={() => onAnswer(option.value)}
-            className={`w-full p-4 rounded-lg border transition-all ${
-              currentAnswer === option.value
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-200 hover:border-blue-300'
-            }`}
+            className={`w-full max-w-xl text-center p-4 rounded-lg hover:bg-blue-50 border border-gray-200`}
           >
             {option.label}
           </button>

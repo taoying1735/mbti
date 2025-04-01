@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   Share2, Download, History, Copy, Check, Brain, Users, Briefcase, 
   Heart, Lightbulb, Target, RefreshCw, Book, Star, Coffee, Zap,
@@ -136,6 +136,9 @@ export const ResultPage: React.FC = () => {
 
     return descriptions[dimension] || [];
   };
+
+  // 假设结果对象中包含测试版本信息
+  const testVersion = result.version || 'basic';
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -478,14 +481,11 @@ export const ResultPage: React.FC = () => {
                 查看历史
               </button>
             )}
-            {result.version !== 'easy' && (
-              <button
-                onClick={() => navigate(`/report/${id}`)}
-                className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
+            {(testVersion === 'detailed' || testVersion === 'professional') && (
+              <Link to={`/report/${result.id}`} className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                 <FileText className="w-5 h-5 mr-2" />
                 查看详细报告
-              </button>
+              </Link>
             )}
           </div>
         </div>
