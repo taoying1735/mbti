@@ -53,19 +53,40 @@ export const ResultPage: React.FC = () => {
       // 如果第一次渲染时 store 中没有，并且 state 中也没有，则导航是合理的。
     }
     
-    if (result && !typeDescriptions[result.type]) {
-      // console.error(`ResultPage: Invalid MBTI type: ${result.type} for result ID: ${result.id}. Navigating to home.`);
-      navigate('/');
-    }
-  }, [result, navigate, id, resultFromState]); // resultFromState 加入依赖，以便在它变化时重新评估
+    // 保留此检查，以防 result.type 确实是完全无效的（例如，不是4个字母）
+    // 但主要依赖下面的渲染逻辑来处理缺失的描述
+    // if (result && !typeDescriptions[result.type]) {
+    //   // console.warn(`ResultPage: Description for MBTI type ${result.type} not found. Displaying basic info.`);
+    // }
+  }, [result, navigate, id, resultFromState]);
 
-  if (!result || !typeDescriptions[result.type]) {
-    // 如果 result 无效或类型描述无效，则不渲染内容
+  if (!result) {
+    // 如果 result 无效（例如，store 未更新或 state 中无有效数据）
     // useEffect 应该已经处理了重定向或正在等待 store 更新。
     return null;
   }
 
-  const description = typeDescriptions[result.type];
+  const description = typeDescriptions[result.type]; // 这可能是 undefined
+
+  // 如果类型描述不存在，提供一个默认的结构或提示
+  const safeDescription = description || {
+    title: '未知类型',
+    subtitle: '详细描述正在完善中',
+    description: '您的MBTI类型分析结果已生成，但该类型的详细描述信息暂未提供。请关注后续更新。',
+    characteristics: [],
+    strengths: [],
+    weaknesses: [],
+    careers: [],
+    growth: [],
+    relationships: { strengths: [], challenges: [] },
+    workStyle: { preferences: [], challenges: [] },
+    learningStyle: { preferences: [], strategies: [] },
+    stressManagement: { triggers: [], copingStrategies: [] },
+    communicationStyle: { strengths: [], challenges: [], tips: [] },
+    values: [],
+    hobbies: [],
+    inspirationalFigures: []
+  };
 
   const handleSave = async () => {
     if (resultRef.current) {
@@ -174,10 +195,10 @@ export const ResultPage: React.FC = () => {
           {/* Title and description */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              {result.type} - {description.title}
+              {result.type} - {safeDescription.title}
             </h1>
-            <p className="text-xl text-gray-600 mb-2">{description.subtitle}</p>
-            <p className="text-gray-600">{description.description}</p>
+            <p className="text-xl text-gray-600 mb-2">{safeDescription.subtitle}</p>
+            <p className="text-gray-600">{safeDescription.description}</p>
           </div>
 
           {/* Personality Analysis */}
@@ -323,7 +344,7 @@ export const ResultPage: React.FC = () => {
                   职业发展建议
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {description.careers.slice(0, result.version === 'standard' ? 6 : 8).map((career, index) => (
+                  {safeDescription.careers.slice(0, result.version === 'standard' ? 6 : 8).map((career, index) => (
                     <div
                       key={index}
                       className="bg-white p-4 rounded-lg shadow text-center transform transition-transform hover:scale-105"
@@ -343,7 +364,7 @@ export const ResultPage: React.FC = () => {
                     个人优势
                   </h3>
                   <div className="space-y-3">
-                    {description.strengths.slice(0, result.version === 'standard' ? 4 : 6).map((strength, index) => (
+                    {safeDescription.strengths.slice(0, result.version === 'standard' ? 4 : 6).map((strength, index) => (
                       <div
                         key={index}
                         className="bg-white p-3 rounded-lg flex items-start gap-2"
@@ -361,7 +382,7 @@ export const ResultPage: React.FC = () => {
                     成长挑战
                   </h3>
                   <div className="space-y-3">
-                    {description.weaknesses.slice(0, result.version === 'standard' ? 4 : 6).map((weakness, index) => (
+                    {safeDescription.weaknesses.slice(0, result.version === 'standard' ? 4 : 6).map((weakness, index) => (
                       <div
                         key={index}
                         className="bg-white p-3 rounded-lg flex items-start gap-2"
@@ -389,7 +410,7 @@ export const ResultPage: React.FC = () => {
                   <div>
                     <h3 className="text-xl font-medium mb-4">学习偏好</h3>
                     <div className="space-y-3">
-                      {description.learningStyle.preferences.map((pref, index) => (
+                      {safeDescription.learningStyle.preferences.map((pref, index) => (
                         <div
                           key={index}
                           className="bg-white p-3 rounded-lg flex items-start gap-2"
@@ -403,7 +424,7 @@ export const ResultPage: React.FC = () => {
                   <div>
                     <h3 className="text-xl font-medium mb-4">学习策略</h3>
                     <div className="space-y-3">
-                      {description.learningStyle.strategies.map((strategy, index) => (
+                      {safeDescription.learningStyle.strategies.map((strategy, index) => (
                         <div
                           key={index}
                           className="bg-white p-3 rounded-lg flex items-start gap-2"
@@ -427,7 +448,7 @@ export const ResultPage: React.FC = () => {
                   <div>
                     <h3 className="text-xl font-medium mb-4">沟通优势</h3>
                     <div className="space-y-3">
-                      {description.communicationStyle.strengths.map((strength, index) => (
+                      {safeDescription.communicationStyle.strengths.map((strength, index) => (
                         <div
                           key={index}
                           className="bg-white p-3 rounded-lg flex items-start gap-2"
@@ -441,7 +462,7 @@ export const ResultPage: React.FC = () => {
                   <div>
                     <h3 className="text-xl font-medium mb-4">沟通挑战</h3>
                     <div className="space-y-3">
-                      {description.communicationStyle.challenges.map((challenge, index) => (
+                      {safeDescription.communicationStyle.challenges.map((challenge, index) => (
                         <div
                           key={index}
                           className="bg-white p-3 rounded-lg flex items-start gap-2"
@@ -455,7 +476,7 @@ export const ResultPage: React.FC = () => {
                   <div>
                     <h3 className="text-xl font-medium mb-4">改进建议</h3>
                     <div className="space-y-3">
-                      {description.communicationStyle.tips.map((tip, index) => (
+                      {safeDescription.communicationStyle.tips.map((tip, index) => (
                         <div
                           key={index}
                           className="bg-white p-3 rounded-lg flex items-start gap-2"

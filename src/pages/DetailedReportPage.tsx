@@ -10,10 +10,13 @@ import {
 import { toPng } from 'html-to-image';
 import { typeDescriptions } from '../data/typeDescriptions';
 import { BackButton } from '../components/BackButton';
+import { useTestStore } from '../store/testStore'; // Import useTestStore
+import { TestResult } from '../types/mbti'; // Import TestResult type
 
 export const DetailedReportPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { savedResults } = useTestStore(); // Get savedResults from store
   const [saving, setSaving] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
@@ -23,18 +26,35 @@ export const DetailedReportPage: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // In a real app, we would fetch the result from storage using the ID
-  const result = {
-    type: 'INTJ',
-    scores: {
-      E: 30, I: 70,
-      S: 40, N: 60,
-      T: 65, F: 35,
-      J: 55, P: 45
+  const result: TestResult | undefined = savedResults.find(r => r.id === id);
+
+  useEffect(() => {
+    if (!result) {
+      // console.error(`DetailedReportPage: No result found for ID ${id}. Navigating to home.`);
+      navigate('/');
     }
-  };
+  }, [result, id, navigate]);
+
+  if (!result) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-600">正在加载报告或报告不存在...</p>
+      </div>
+    );
+  }
 
   const description = typeDescriptions[result.type];
+
+  if (!description) {
+    // This case should ideally not happen if typeDescriptions is complete
+    // and result.type is always valid.
+    // console.error(`DetailedReportPage: No description found for type ${result.type}.`);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-red-600">无法加载类型 {result.type} 的描述信息。</p>
+      </div>
+    );
+  }
 
   const handleSaveReport = async () => {
     if (!reportRef.current) return;
@@ -64,31 +84,44 @@ export const DetailedReportPage: React.FC = () => {
 
   const handleShare = () => {
     // Implement the share functionality
-    console.log('Sharing report');
-    setCopied(true);
+    const shareUrl = window.location.href;
+    const shareText = `来看看我的MBTI (${result.type} - ${description.title}) 深度解析报告！`;
+    if (navigator.share) {
+      navigator.share({
+        title: `MBTI深度解析报告 - ${result.type}`,
+        text: shareText,
+        url: shareUrl,
+      })
+      .then(() => console.log('分享成功'))
+      .catch((error) => console.log('分享失败', error));
+    } else {
+      navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   // 性格维度解释
   const dimensionDescriptions = {
     EI: {
-      title: '能量来源',
-      left: { label: '外向 (E)', desc: '从外部世界获取能量，喜欢社交互动' },
-      right: { label: '内向 (I)', desc: '从内心世界获取能量，需要独处时间' }
+      title: '能量来源 (E/I)',
+      left: { label: '外向 (E)', desc: '从外部世界获取能量，喜欢社交互动，行动导向。' },
+      right: { label: '内向 (I)', desc: '从内心世界获取能量，需要独处时间，思考导向。' }
     },
     SN: {
-      title: '信息获取',
-      left: { label: '感知 (S)', desc: '关注具体的事实和细节' },
-      right: { label: '直觉 (N)', desc: '关注可能性和未来发展' }
+      title: '信息获取 (S/N)',
+      left: { label: '感知 (S)', desc: '关注具体的事实、细节和实际经验，活在当下。' },
+      right: { label: '直觉 (N)', desc: '关注可能性、模式和未来发展，富有想象力。' }
     },
     TF: {
-      title: '决策方式',
-      left: { label: '思维 (T)', desc: '基于逻辑和客观分析做决定' },
-      right: { label: '情感 (F)', desc: '基于价值观和他人感受做决定' }
+      title: '决策方式 (T/F)',
+      left: { label: '思维 (T)', desc: '基于逻辑、客观分析和原则做决定，追求公平。' },
+      right: { label: '情感 (F)', desc: '基于价值观、人际和谐和他人感受做决定，追求共情。' }
     },
     JP: {
-      title: '生活方式',
-      left: { label: '判断 (J)', desc: '喜欢计划和有序的生活' },
-      right: { label: '知觉 (P)', desc: '喜欢灵活和自发的生活' }
+      title: '生活方式 (J/P)',
+      left: { label: '判断 (J)', desc: '喜欢计划、组织和掌控，倾向于有序和结构化的生活。' },
+      right: { label: '知觉 (P)', desc: '喜欢灵活、自发和开放，倾向于适应和探索性的生活。' }
     }
   };
 
@@ -98,19 +131,26 @@ export const DetailedReportPage: React.FC = () => {
         <BackButton />
 
         {/* 返回和保存按钮 */}
-        <div className="flex justify-end mb-8">
+        <div className="flex justify-end mb-8 space-x-4">
+          <button
+            onClick={handleShare}
+            className="flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+          >
+            {copied ? <Check className="w-5 h-5 mr-2" /> : <Share2 className="w-5 h-5 mr-2" />}
+            {copied ? '链接已复制' : '分享报告'}
+          </button>
           <button
             onClick={handleSaveReport}
             disabled={saving}
             className={`flex items-center px-6 py-3 ${
               saving 
-                ? 'bg-green-500 text-white' 
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-            } rounded-lg transition-colors`}
+                ? 'bg-green-400 cursor-not-allowed' 
+                : 'bg-blue-600 hover:bg-blue-700'
+            } text-white rounded-lg transition-colors`}
           >
             {saving ? (
               <>
-                <Check className="w-5 h-5 mr-2" />
+                <Check className="w-5 h-5 mr-2 animate-pulse" />
                 保存中...
               </>
             ) : (
@@ -123,7 +163,7 @@ export const DetailedReportPage: React.FC = () => {
         </div>
 
         {/* 报告内容 - 添加 ref */}
-        <div ref={reportRef}>
+        <div ref={reportRef} className="bg-white p-2 rounded-2xl"> {/* Added padding to parent for better image capture */}
           {/* 封面部分 */}
           <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-xl p-12 text-white mb-12">
             <div className="max-w-3xl mx-auto text-center">
@@ -138,7 +178,7 @@ export const DetailedReportPage: React.FC = () => {
               </div>
               <p className="text-xl text-white/90 mb-8">{description.subtitle}</p>
               <div className="inline-block px-6 py-3 bg-white/20 rounded-full">
-                报告生成日期：{new Date().toLocaleDateString('zh-CN')}
+                报告生成日期：{new Date(result.date).toLocaleDateString('zh-CN')}
               </div>
             </div>
           </div>
@@ -186,22 +226,22 @@ export const DetailedReportPage: React.FC = () => {
                         />
                       </div>
                       <div className="absolute top-6 left-0 right-0 flex justify-between text-sm text-gray-600">
-                        <span>{leftScore}%</span>
-                        <span>{rightScore}%</span>
+                        <span>{desc.left.label}: {leftScore}%</span>
+                        <span>{desc.right.label}: {rightScore}%</span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-blue-600 font-medium">
                           <CheckCircle2 className="w-5 h-5" />
-                          {desc.left.label}
+                          倾向 {desc.left.label}
                         </div>
                         <p className="text-gray-600">{desc.left.desc}</p>
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-purple-600 font-medium">
                           <CheckCircle2 className="w-5 h-5" />
-                          {desc.right.label}
+                           倾向 {desc.right.label}
                         </div>
                         <p className="text-gray-600">{desc.right.desc}</p>
                       </div>
@@ -222,7 +262,7 @@ export const DetailedReportPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {description.characteristics.map((trait, index) => (
+              {description.characteristics.map((trait: string, index: number) => (
                 <div
                   key={index}
                   className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl flex items-start gap-4 transform transition-transform hover:scale-105"
@@ -246,7 +286,7 @@ export const DetailedReportPage: React.FC = () => {
                 <h2 className="text-2xl font-bold">个人优势</h2>
               </div>
               <div className="space-y-4">
-                {description.strengths.map((strength, index) => (
+                {description.strengths.map((strength: string, index: number) => (
                   <div
                     key={index}
                     className="flex items-start gap-3 bg-white/60 p-4 rounded-lg"
@@ -266,7 +306,7 @@ export const DetailedReportPage: React.FC = () => {
                 <h2 className="text-2xl font-bold">成长挑战</h2>
               </div>
               <div className="space-y-4">
-                {description.weaknesses.map((weakness, index) => (
+                {description.weaknesses.map((weakness: string, index: number) => (
                   <div
                     key={index}
                     className="flex items-start gap-3 bg-white/60 p-4 rounded-lg"
@@ -289,7 +329,7 @@ export const DetailedReportPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {description.careers.map((career, index) => (
+              {description.careers.map((career: string, index: number) => (
                 <div
                   key={index}
                   className="bg-white/60 p-6 rounded-xl text-center transform transition-transform hover:scale-105"
@@ -306,11 +346,7 @@ export const DetailedReportPage: React.FC = () => {
                 职业发展建议
               </h3>
               <ul className="list-disc list-inside space-y-2 text-gray-700">
-                <li>充分发挥您的分析能力和战略思维</li>
-                <li>寻找能够持续学习和创新的工作环境</li>
-                <li>注重建立专业网络和人际关系</li>
-                <li>保持对新技术和行业趋势的关注</li>
-                <li>在团队中承担领导或指导角色</li>
+                {description.growth.slice(0,5).map((g: string, i: number) => <li key={`career-growth-${i}`}>{g}</li>)}
               </ul>
             </div>
           </div>
@@ -331,7 +367,7 @@ export const DetailedReportPage: React.FC = () => {
                   学习偏好
                 </h3>
                 <div className="space-y-4">
-                  {description.learningStyle.preferences.map((pref, index) => (
+                  {description.learningStyle.preferences.map((pref: string, index: number) => (
                     <div
                       key={index}
                       className="bg-white/60 p-4 rounded-lg flex items-start gap-3"
@@ -348,7 +384,7 @@ export const DetailedReportPage: React.FC = () => {
                   学习策略
                 </h3>
                 <div className="space-y-4">
-                  {description.learningStyle.strategies.map((strategy, index) => (
+                  {description.learningStyle.strategies.map((strategy: string, index: number) => (
                     <div
                       key={index}
                       className="bg-white/60 p-4 rounded-lg flex items-start gap-3"
@@ -406,7 +442,7 @@ export const DetailedReportPage: React.FC = () => {
                   关系优势
                 </h3>
                 <div className="space-y-4">
-                  {description.relationships.strengths.map((strength, index) => (
+                  {description.relationships.strengths.map((strength: string, index: number) => (
                     <div
                       key={index}
                       className="bg-white/60 p-4 rounded-lg flex items-start gap-3"
@@ -423,7 +459,7 @@ export const DetailedReportPage: React.FC = () => {
                   关系挑战
                 </h3>
                 <div className="space-y-4">
-                  {description.relationships.challenges.map((challenge, index) => (
+                  {description.relationships.challenges.map((challenge: string, index: number) => (
                     <div
                       key={index}
                       className="bg-white/60 p-4 rounded-lg flex items-start gap-3"
@@ -445,9 +481,7 @@ export const DetailedReportPage: React.FC = () => {
                     <span className="font-medium">沟通技巧</span>
                   </div>
                   <ul className="list-disc list-inside space-y-2 text-gray-700">
-                    <li>保持开放态度</li>
-                    <li>积极倾听</li>
-                    <li>表达共情</li>
+                    {description.communicationStyle.tips.slice(0,3).map((tip:string, i:number) => <li key={`comm-tip-${i}`}>{tip}</li>)}
                   </ul>
                 </div>
                 <div className="space-y-3">
@@ -456,9 +490,7 @@ export const DetailedReportPage: React.FC = () => {
                     <span className="font-medium">情感连接</span>
                   </div>
                   <ul className="list-disc list-inside space-y-2 text-gray-700">
-                    <li>表达关心</li>
-                    <li>分享感受</li>
-                    <li>建立信任</li>
+                     {description.communicationStyle.tips.slice(3,6).map((tip:string, i:number) => <li key={`comm-tip-emo-${i}`}>{tip}</li>)}
                   </ul>
                 </div>
                 <div className="space-y-3">
@@ -467,9 +499,9 @@ export const DetailedReportPage: React.FC = () => {
                     <span className="font-medium">社交平衡</span>
                   </div>
                   <ul className="list-disc list-inside space-y-2 text-gray-700">
-                    <li>保持边界感</li>
-                    <li>适度社交</li>
-                    <li>维护空间</li>
+                    <li>保持个人空间与独立性</li>
+                    <li>选择性参与社交活动</li>
+                    <li>尊重彼此的社交需求差异</li>
                   </ul>
                 </div>
               </div>
@@ -486,7 +518,7 @@ export const DetailedReportPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {description.growth.map((tip, index) => (
+              {description.growth.map((tip: string, index: number) => (
                 <div
                   key={index}
                   className="bg-white/60 p-6 rounded-xl flex items-start gap-4"
@@ -513,7 +545,7 @@ export const DetailedReportPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {description.inspirationalFigures.map((figure, index) => (
+              {description.inspirationalFigures.map((figure: string, index: number) => (
                 <div
                   key={index}
                   className="bg-white/60 p-6 rounded-xl text-center transform transition-transform hover:scale-105"
@@ -548,7 +580,7 @@ export const DetailedReportPage: React.FC = () => {
             ) : (
               <Share2 className="w-5 h-5 mr-2" />
             )}
-            {copied ? '已复制' : '分享报告'}
+            {copied ? '链接已复制!' : '分享报告'}
           </button>
           
           <button
@@ -556,29 +588,21 @@ export const DetailedReportPage: React.FC = () => {
             disabled={saving}
             className={`flex items-center px-6 py-3 ${
               saving 
-                ? 'bg-green-500 text-white' 
-                : 'bg-orange-600 hover:bg-orange-700 text-white'
-            } rounded-lg transition-colors`}
+                ? 'bg-green-400 cursor-not-allowed' 
+                : 'bg-orange-600 hover:bg-orange-700'
+            } text-white rounded-lg transition-colors`}
           >
             {saving ? (
               <>
-                <Check className="w-5 h-5 mr-2" />
+                <Check className="w-5 h-5 mr-2 animate-pulse" />
                 保存中...
               </>
             ) : (
               <>
                 <Download className="w-5 h-5 mr-2" />
-                保存报告
+                保存图片
               </>
             )}
-          </button>
-          
-          <button
-            onClick={() => navigate(`/result/${id}`)}
-            className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            返回结果页
           </button>
         </div>
       </div>
@@ -586,35 +610,26 @@ export const DetailedReportPage: React.FC = () => {
   );
 };
 
-// 辅助函数：根据成长建议生成具体行动建议
+// Helper function (can be moved to a utils file)
 function getActionSuggestion(tip: string): string {
-  // 这里可以根据不同的建议返回相应的具体行动
-  // 示例实现
-  if (tip.includes('同理心')) {
-    return '每天花时间倾听他人的想法和感受';
-  }
-  if (tip.includes('社交')) {
-    return '每周参加一次社交活动或小组讨论';
-  }
-  if (tip.includes('情感')) {
-    return '尝试写日记记录每天的情感体验';
-  }
-  if (tip.includes('灵活')) {
-    return '制定备选计划，接受计划变更';
-  }
-  return '设定每周小目标，循序渐进地实践';
+  if (tip.includes('分析能力') || tip.includes('战略思维')) return '参与需要深度思考的讨论或项目。';
+  if (tip.includes('学习和创新')) return '每天安排固定时间学习新知识或技能。';
+  if (tip.includes('专业网络')) return '积极参加行业会议，拓展人脉。';
+  if (tip.includes('新技术')) return '订阅行业资讯，关注前沿动态。';
+  if (tip.includes('领导或指导')) return '在团队中主动承担责任，分享经验。';
+  if (tip.includes('同理心') || tip.includes('他人感受')) return '尝试换位思考，理解他人立场。';
+  if (tip.includes('放松标准')) return '允许不完美，专注于完成而非极致。';
+  if (tip.includes('社交技能')) return '多参与社交活动，练习沟通技巧。';
+  if (tip.includes('即兴情况')) return '尝试参与即兴表演或辩论活动。';
+  if (tip.includes('团队合作')) return '主动与同事协作，共同完成目标。';
+  return '从小处着手，逐步实践。';
 }
 
-// 辅助函数：获取名人简短描述
 function getPersonDescription(name: string): string {
-  // 示例实现
-  const descriptions: { [key: string]: string } = {
-    '埃隆·马斯克': 'Tesla和SpaceX创始人，创新思维的代表',
-    '斯蒂芬·霍金': '著名物理学家，科学探索的典范',
-    '弗里德里希·尼采': '哲学家，独立思考的代表人物',
-    '阿兰·图灵': '计算机科学之父，逻辑思维的大师',
-    '尼古拉·特斯拉': '发明家，创新精神的化身',
-    '马克·扎克伯格': 'Meta创始人，战略思维的典范'
+  const descriptions: Record<string, string> = {
+    '埃隆·马斯克': '创新企业家，特斯拉、SpaceX创始人。',
+    '斯蒂芬·霍金': '杰出理论物理学家，宇宙学家。',
+    // Add more descriptions as needed
   };
-  return descriptions[name] || '在各自领域做出重要贡献的代表人物';
+  return descriptions[name] || '一位杰出的人物。';
 }
