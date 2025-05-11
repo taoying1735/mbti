@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   Share2, Download, History, Copy, Check, Brain, Users, Briefcase, 
   Heart, Lightbulb, Target, RefreshCw, Book, Star, Coffee, Zap,
@@ -7,6 +7,7 @@ import {
   Home, ChevronRight, CheckCircle2, XCircle, Rocket, FileText
 } from 'lucide-react';
 import { useTestStore } from '../store/testStore';
+import { TestResult } from '../types/mbti';
 import { toPng } from 'html-to-image';
 import { typeDescriptions } from '../data/typeDescriptions';
 import { BackButton } from '../components/BackButton';
@@ -17,25 +18,40 @@ export const ResultPage: React.FC = () => {
   const { savedResults, saveResult } = useTestStore();
   const [copied, setCopied] = React.useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
 
-  // 从保存的结果中查找当前结果
-  const result = savedResults.find(r => r.id === id);
+  const resultFromState = location.state?.resultFromTest as TestResult | undefined;
+  const resultFromStore = savedResults.find(r => r.id === id);
+
+  // 优先使用从路由状态传递过来的 result，如果不存在，再尝试从 savedResults 中查找
+  // 如果两者都存在，确保它们是同一个结果，或者优先使用 state 中的，因为它更新鲜
+  const result = resultFromState && resultFromState.id === id ? resultFromState : resultFromStore;
+
 
   // 如果找不到结果，重定向到首页
   useEffect(() => {
     if (!result) {
-      navigate('/');
-      return;
+      // 如果 state 中有但 id 不匹配，或者 store 中没有，则可能是一个问题
+      // 但主要情况是 result 为空
+      if (!resultFromState && !resultFromStore) {
+          navigate('/');
+          return;
+      }
+      // 如果 resultFromState 存在但 id 不匹配当前 url 的 id，这不应该发生
+      // 如果 resultFromStore 不存在，但 resultFromState 存在且匹配，则使用它
     }
-
-    // 如果找不到对应的类型描述，也重定向到首页
-    if (!typeDescriptions[result.type]) {
-      console.error(`Invalid MBTI type: ${result.type}`);
+    
+    // 确保 result 存在才继续
+    if (result && !typeDescriptions[result.type]) {
+      console.error(`Invalid MBTI type: ${result.type} for result ID: ${result.id}`);
       navigate('/');
     }
-  }, [result, navigate]);
+  }, [result, navigate, id, resultFromState, resultFromStore]);
 
   if (!result || !typeDescriptions[result.type]) {
+    // 避免在重定向前渲染，或者在数据不一致时渲染
+    // 如果 resultFromState 存在且有效，但 result (最终选择的) 无效，则可能是 store 查找失败
+    // 这种情况应该由上面的 useEffect 处理重定向
     return null;
   }
 
@@ -481,7 +497,7 @@ export const ResultPage: React.FC = () => {
                 查看历史
               </button>
             )}
-            {(testVersion === 'detailed' || testVersion === 'professional') && (
+            {(testVersion === 'professional') && (
               <Link to={`/report/${result.id}`} className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                 <FileText className="w-5 h-5 mr-2" />
                 查看详细报告

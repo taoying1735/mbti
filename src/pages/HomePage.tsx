@@ -20,7 +20,7 @@ const testVersions: TestVersion[] = [
     id: 'easy',
     title: '简易版测试',
     icon: <Brain className="w-8 h-8" />,
-    questions: 20,
+    questions: 10,
     duration: '1分钟',
     difficulty: '基础',
     audience: '初次了解MBTI的人群',

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Answer, TestResult, Question, TestVersion } from '../types/mbti';
+import { Answer, TestResult, Question, TestVersion, MBTIResult } from '../types/mbti';
 import { easyQuestions, standardQuestions, professionalQuestions } from '../data/questions';
 
 interface TestStore {
@@ -74,7 +74,7 @@ export const useTestStore = create<TestStore>((set, get) => ({
         break;
       default:
         questionPool = easyQuestions;
-        targetCount = 20;
+        targetCount = 10;
     }
 
     // 随机选择问题

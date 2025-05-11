@@ -38,10 +38,9 @@ function App() {
 
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/test/easy" element={<Navigate to="/test/basic" replace />} />
-          <Route path="/test/basic" element={<TestPage version="basic" title="简单版" description="20个测试题目" />} />
+          <Route path="/test/easy" element={<TestPage version="easy" title="简易版" description="10个测试题目" />} />
           <Route path="/test/standard" element={<TestPage version="standard" title="标准版" description="45个测试题目" />} />
-          <Route path="/test/detailed" element={<TestPage version="detailed" title="详细版" description="93个测试题目" />} />
+          <Route path="/test/detailed" element={<TestPage version="professional" title="详细版" description="93个测试题目" />} />
           <Route path="/test/professional" element={<TestPage version="professional" title="专业版" description="93个测试题目" />} />
           <Route path="/result/:id" element={<ResultPage />} />
           <Route path="/report/:id" element={<DetailedReportPage />} />

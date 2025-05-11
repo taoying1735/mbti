@@ -52,7 +52,7 @@ export const TestPage: React.FC<TestPageProps> = ({ version, title, description 
     setAnswer(currentQuestion.id, score);
     if (currentQuestionIndex === questions.length - 1) {
       const result = calculateResult();
-      navigate(`/result/${result.id}`);
+      navigate(`/result/${result.id}`, { state: { resultFromTest: result } });
     } else {
       nextQuestion();
     }
