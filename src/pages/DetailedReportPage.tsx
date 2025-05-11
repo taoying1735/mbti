@@ -61,13 +61,16 @@ export const DetailedReportPage: React.FC = () => {
 
     try {
       setSaving(true);
-      const dataUrl = await toPng(reportRef.current, {
-        quality: 1.0,
-        backgroundColor: '#F9FAFB',
-        style: {
-          transform: 'scale(1)',
-          transformOrigin: 'top left'
-        }
+      const element = reportRef.current;
+      const dataUrl = await toPng(element, {
+        quality: 0.98,
+        backgroundColor: '#FFFFFF',
+        cacheBust: true,
+        // Attempt to use the element's full scroll dimensions
+        canvasWidth: element.scrollWidth,
+        canvasHeight: element.scrollHeight,
+        // Set a higher pixelRatio for better resolution, but not excessively high
+        pixelRatio: Math.min(window.devicePixelRatio, 2),
       });
 
       const link = document.createElement('a');
