@@ -30,7 +30,7 @@ export const TestPage: React.FC<TestPageProps> = ({ version, title, description 
     } else {
       navigate('/');
     }
-  }, [version, navigate]);
+  }, [version, navigate, startTest]);
 
   if (!questions.length) {
     return (

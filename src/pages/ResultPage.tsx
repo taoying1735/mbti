@@ -15,43 +15,53 @@ import { BackButton } from '../components/BackButton';
 export const ResultPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { savedResults, saveResult } = useTestStore();
+  const { savedResults, saveResult: saveResultToStore } = useTestStore();
   const [copied, setCopied] = React.useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
   const resultFromState = location.state?.resultFromTest as TestResult | undefined;
-  const resultFromStore = savedResults.find(r => r.id === id);
 
-  // 优先使用从路由状态传递过来的 result，如果不存在，再尝试从 savedResults 中查找
-  // 如果两者都存在，确保它们是同一个结果，或者优先使用 state 中的，因为它更新鲜
-  const result = resultFromState && resultFromState.id === id ? resultFromState : resultFromStore;
-
-
-  // 如果找不到结果，重定向到首页
   useEffect(() => {
+    if (resultFromState && resultFromState.id === id) {
+      // 如果 state 中有结果，并且 id 匹配，确保它被保存到 store
+      saveResultToStore(resultFromState);
+    }
+  }, [resultFromState, id, saveResultToStore]);
+
+  // 总是尝试从 store 中获取最新的结果
+  const result = savedResults.find(r => r.id === id);
+
+  useEffect(() => {
+    // 这个 effect 依赖于 `result` (从 store 获取) 和 `resultFromState`
+    // 以决定是否应该导航。
     if (!result) {
-      // 如果 state 中有但 id 不匹配，或者 store 中没有，则可能是一个问题
-      // 但主要情况是 result 为空
-      if (!resultFromState && !resultFromStore) {
-          navigate('/');
-          return;
+      // 如果 store 中没有结果，我们需要检查 resultFromState。
+      // 如果 resultFromState 也是无效的 (null, undefined, or id mismatch), 那么导航。
+      if (!resultFromState || resultFromState.id !== id) {
+        // console.error(`ResultPage: No valid result in state or store for ID ${id}. Navigating to home.`);
+        navigate('/');
+        return;
       }
-      // 如果 resultFromState 存在但 id 不匹配当前 url 的 id，这不应该发生
-      // 如果 resultFromStore 不存在，但 resultFromState 存在且匹配，则使用它
+      // 如果 resultFromState 有效，但 store 中还没有 (result is falsy)，
+      // 这意味着上面的 useEffect (saveResultToStore) 可能还没来得及更新 store 并触发重渲染。
+      // 在这种情况下，我们可能不应该立即导航，而是等待 store 更新。
+      // 然而，为了避免无限循环或复杂的状态等待，如果 store 中没有，
+      // 并且 resultFromState 也不能立即解决问题（例如，它不是最新的），则导航。
+      // 目前的逻辑是：如果 store 中没有，并且 state 中也没有有效数据，则导航。
+      // 如果 state 中有数据，上面的 effect 会尝试保存它，这个 effect 应该在下一次渲染时拿到 store 中的数据。
+      // 如果第一次渲染时 store 中没有，并且 state 中也没有，则导航是合理的。
     }
     
-    // 确保 result 存在才继续
     if (result && !typeDescriptions[result.type]) {
-      console.error(`Invalid MBTI type: ${result.type} for result ID: ${result.id}`);
+      // console.error(`ResultPage: Invalid MBTI type: ${result.type} for result ID: ${result.id}. Navigating to home.`);
       navigate('/');
     }
-  }, [result, navigate, id, resultFromState, resultFromStore]);
+  }, [result, navigate, id, resultFromState]); // resultFromState 加入依赖，以便在它变化时重新评估
 
   if (!result || !typeDescriptions[result.type]) {
-    // 避免在重定向前渲染，或者在数据不一致时渲染
-    // 如果 resultFromState 存在且有效，但 result (最终选择的) 无效，则可能是 store 查找失败
-    // 这种情况应该由上面的 useEffect 处理重定向
+    // 如果 result 无效或类型描述无效，则不渲染内容
+    // useEffect 应该已经处理了重定向或正在等待 store 更新。
     return null;
   }
 
