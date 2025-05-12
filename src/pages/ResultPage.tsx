@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { 
-  Share2, Download, History, Copy, Check, Brain, Users, Briefcase, 
+import {
+  Share2, Download, History, Copy, Check, Brain, Users, Briefcase,
   Heart, Lightbulb, Target, RefreshCw, Book, Star, Coffee, Zap,
   Compass, Palette, Award, MessageCircle, Shield, Smile,
   Home, ChevronRight, CheckCircle2, XCircle, Rocket, FileText
@@ -52,7 +52,7 @@ export const ResultPage: React.FC = () => {
       // 如果 state 中有数据，上面的 effect 会尝试保存它，这个 effect 应该在下一次渲染时拿到 store 中的数据。
       // 如果第一次渲染时 store 中没有，并且 state 中也没有，则导航是合理的。
     }
-    
+
     // 保留此检查，以防 result.type 确实是完全无效的（例如，不是4个字母）
     // 但主要依赖下面的渲染逻辑来处理缺失的描述
     // if (result && !typeDescriptions[result.type]) {
@@ -223,7 +223,7 @@ export const ResultPage: React.FC = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium text-blue-800 mb-2">主要特征</h4>
@@ -254,7 +254,7 @@ export const ResultPage: React.FC = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium text-purple-800 mb-2">主要特征</h4>
@@ -285,7 +285,7 @@ export const ResultPage: React.FC = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium text-green-800 mb-2">主要特征</h4>
@@ -316,7 +316,7 @@ export const ResultPage: React.FC = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium text-rose-800 mb-2">主要特征</h4>
@@ -514,7 +514,7 @@ export const ResultPage: React.FC = () => {
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              className="hidden"
             >
               <Download className="w-5 h-5 mr-2" />
               保存图片

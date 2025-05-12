@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
+import {
   ArrowLeft, Brain, Target, Zap, Briefcase, Book, MessageCircle,
   Coffee, Shield, Lightbulb, Users, Heart, Star, Award, Compass,
   Palette, Crown, ChevronRight, Sparkles, LineChart, PieChart,
@@ -570,7 +570,7 @@ export const DetailedReportPage: React.FC = () => {
             <Home className="w-5 h-5 mr-2" />
             返回首页
           </button>
-          
+
           <button
             onClick={handleShare}
             className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -582,15 +582,11 @@ export const DetailedReportPage: React.FC = () => {
             )}
             {copied ? '链接已复制!' : '分享报告'}
           </button>
-          
+
           <button
             onClick={handleSaveReport}
             disabled={saving}
-            className={`flex items-center px-6 py-3 ${
-              saving 
-                ? 'bg-green-400 cursor-not-allowed' 
-                : 'bg-orange-600 hover:bg-orange-700'
-            } text-white rounded-lg transition-colors`}
+            className="hidden"
           >
             {saving ? (
               <>
