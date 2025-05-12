@@ -142,14 +142,11 @@ export const DetailedReportPage: React.FC = () => {
             {copied ? <Check className="w-5 h-5 mr-2" /> : <Share2 className="w-5 h-5 mr-2" />}
             {copied ? '链接已复制' : '分享报告'}
           </button>
+          {/* 隐藏保存图片按钮 */}
           <button
             onClick={handleSaveReport}
             disabled={saving}
-            className={`flex items-center px-6 py-3 ${
-              saving 
-                ? 'bg-green-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700'
-            } text-white rounded-lg transition-colors`}
+            className="hidden"
           >
             {saving ? (
               <>
