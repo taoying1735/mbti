@@ -62,7 +62,7 @@ export const TestPage: React.FC<TestPageProps> = ({ version, title, description 
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         <BackButton />
-        
+
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">MBTI 人格测试</h1>
           <p className="text-gray-600">
@@ -85,9 +85,7 @@ export const TestPage: React.FC<TestPageProps> = ({ version, title, description 
           isLast={currentQuestionIndex === questions.length - 1}
         />
 
-        <div className="text-center text-gray-500">
-          {currentQuestionIndex + 1} / {questions.length}
-        </div>
+        {/* 底部题目计数已隐藏 */}
       </div>
     </div>
   );

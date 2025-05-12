@@ -21,7 +21,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ current: currentVal, t
           style={{ width: `${calculatedPercentage}%` }}
         />
       </div>
-      
+
       {/* 进度指示器 */}
       <div className="flex justify-between items-center text-sm text-gray-600">
         <div className="flex items-center">
@@ -30,7 +30,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ current: currentVal, t
           <span>{tNum}</span>
           <span className="ml-2">题</span>
         </div>
-        <span>{Math.round(calculatedPercentage)}%</span>
+        {/* 百分比已隐藏 */}
       </div>
     </div>
   );
