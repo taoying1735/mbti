@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://173567.xyz/sitemap.xml
+
+# Common crawl delays
+Crawl-delay: 1
+
+# Disallow temp and cache directories
+Disallow: /temp/
+Disallow: /cache/
+Disallow: /.git/
+
+# Allow search engines to crawl all important pages
+Allow: /
+Allow: /about
+Allow: /types
+Allow: /test/
+Allow: /blog
+Allow: /blog/*
