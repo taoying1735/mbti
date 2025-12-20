@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Brain, Sparkles, Rocket, Clock, Users, BookOpen, CheckCircle, ArrowRight, Star, TrendingUp } from 'lucide-react';
+import { Brain, Sparkles, Rocket, Clock, Users, BookOpen, CheckCircle, ArrowRight, Star, TrendingUp, Calendar, User } from 'lucide-react';
+import { blogPosts } from '../data/blogPosts';
 
 interface TestVersion {
   id: 'easy' | 'standard' | 'professional';
@@ -279,6 +280,86 @@ export const HomePage: React.FC = () => {
               <div>
                 <div className="text-4xl font-bold text-orange-600 mb-2">16</div>
                 <p className="text-gray-600">种独特的人格类型</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Blog Post */}
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                精选文章
+              </h2>
+              <p className="text-lg text-gray-600">
+                深入了解MBTI，探索个人成长之路
+              </p>
+            </div>
+            <div className="max-w-4xl mx-auto">
+              {blogPosts.filter(post => post.featured).slice(0, 1).map((post) => (
+                <div key={post.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className="md:flex">
+                    <div className="md:w-1/3">
+                      <div className="h-48 md:h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <BookOpen className="h-16 w-16 text-white" />
+                      </div>
+                    </div>
+                    <div className="p-8 md:w-2/3">
+                      <div className="flex items-center gap-4 mb-4">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full font-medium">
+                          {post.category}
+                        </span>
+                        <div className="flex items-center text-gray-500 text-sm">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          {post.publishDate}
+                        </div>
+                        <div className="flex items-center text-gray-500 text-sm">
+                          <User className="h-4 w-4 mr-1" />
+                          {post.author}
+                        </div>
+                        <div className="flex items-center text-gray-500 text-sm">
+                          <Clock className="h-4 w-4 mr-1" />
+                          {post.readTime} 分钟阅读
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                        {post.title}
+                      </h3>
+                      <p className="text-gray-600 mb-6 line-clamp-3">
+                        {post.description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap gap-2">
+                          {post.tags.slice(0, 3).map((tag) => (
+                            <span
+                              key={tag}
+                              className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <Link
+                          to={`/blog/${post.id}`}
+                          className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          阅读全文
+                          <ArrowRight className="ml-1 h-4 w-4" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="text-center mt-8">
+                <Link
+                  to="/blog"
+                  className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  查看更多文章
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </div>
             </div>
           </div>
