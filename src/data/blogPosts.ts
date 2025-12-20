@@ -1945,7 +1945,7 @@ export const blogCategories = [
     id: '性格分析',
     name: '性格分析',
     description: '深入探讨性格特征、行为模式和个人成长',
-    count: 1
+    count: 2
   },
   {
     id: '测试指南',
