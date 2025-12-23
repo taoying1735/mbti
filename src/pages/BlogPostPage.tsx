@@ -4,6 +4,167 @@ import { ArrowLeft, Calendar, Clock, User, Tag, Share2, Heart } from 'lucide-rea
 import { blogPosts, blogCategories } from '../data/blogPosts';
 import { Helmet } from 'react-helmet-async';
 
+// Markdown解析函数
+const parseMarkdownContent = (content: string) => {
+  // 移除开头和结尾的空白字符
+  let processedContent = content.trim();
+  
+  // 分割内容为行
+  const lines = processedContent.split('\n');
+  let html = '';
+  let inList = false;
+  let listType = ''; // 'ul' or 'ol'
+  let inCodeBlock = false;
+  let codeBlockContent = '';
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // 处理代码块
+    if (line.startsWith('```')) {
+      if (!inCodeBlock) {
+        // 开始代码块
+        inCodeBlock = true;
+        codeBlockContent = '';
+      } else {
+        // 结束代码块
+        inCodeBlock = false;
+        html += `<pre><code>${escapeHtml(codeBlockContent)}</code></pre>\n`;
+        codeBlockContent = '';
+      }
+      continue;
+    }
+    
+    // 如果在代码块中，收集内容
+    if (inCodeBlock) {
+      codeBlockContent += line + '\n';
+      continue;
+    }
+    
+    // 处理标题
+    const titleMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    if (titleMatch) {
+      // 如果在列表中，先关闭列表
+      if (inList) {
+        html += `</${listType}>\n`;
+        inList = false;
+        listType = '';
+      }
+      const level = titleMatch[1].length;
+      html += `<h${level}>${processInlineMarkdown(titleMatch[2])}</h${level}>\n`;
+      continue;
+    }
+    
+    // 处理引用块
+    if (line.startsWith('>')) {
+      // 如果在列表中，先关闭列表
+      if (inList) {
+        html += `</${listType}>\n`;
+        inList = false;
+        listType = '';
+      }
+      const quoteContent = line.substring(1).trim();
+      html += `<blockquote>${processInlineMarkdown(quoteContent)}</blockquote>\n`;
+      continue;
+    }
+    
+    // 处理分割线
+    if (line.match(/^[-*_]{3,}$/)) {
+      // 如果在列表中，先关闭列表
+      if (inList) {
+        html += `</${listType}>\n`;
+        inList = false;
+        listType = '';
+      }
+      html += '<hr />\n';
+      continue;
+    }
+    
+    // 处理空行
+    if (line.trim() === '') {
+      // 如果在列表中，先关闭列表
+      if (inList) {
+        html += `</${listType}>\n`;
+        inList = false;
+        listType = '';
+      }
+      continue;
+    }
+    
+    // 处理无序列表
+    const ulMatch = line.match(/^[-*+]\s+(.+)$/);
+    if (ulMatch) {
+      if (!inList || listType !== 'ul') {
+        if (inList) {
+          html += `</${listType}>\n`;
+        }
+        html += '<ul>\n';
+        inList = true;
+        listType = 'ul';
+      }
+      html += `<li>${processInlineMarkdown(ulMatch[1])}</li>\n`;
+      continue;
+    }
+    
+    // 处理有序列表
+    const olMatch = line.match(/^\d+\.\s+(.+)$/);
+    if (olMatch) {
+      if (!inList || listType !== 'ol') {
+        if (inList) {
+          html += `</${listType}>\n`;
+        }
+        html += '<ol>\n';
+        inList = true;
+        listType = 'ol';
+      }
+      html += `<li>${processInlineMarkdown(olMatch[1])}</li>\n`;
+      continue;
+    }
+    
+    // 处理普通段落
+    if (inList) {
+      html += `</${listType}>\n`;
+      inList = false;
+      listType = '';
+    }
+    html += `<p>${processInlineMarkdown(line)}</p>\n`;
+  }
+  
+  // 确保关闭任何打开的列表
+  if (inList) {
+    html += `</${listType}>\n`;
+  }
+  
+  return { __html: html };
+};
+
+// HTML转义函数
+const escapeHtml = (text: string) => {
+  const map: { [key: string]: string } = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  
+  return text.replace(/[&<>"']/g, (m) => map[m]);
+};
+
+// 处理行内Markdown元素
+const processInlineMarkdown = (text: string) => {
+  // 处理粗体文本
+  let processed = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  
+  // 处理斜体文本
+  processed = processed.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  
+  // 处理行内代码
+  processed = processed.replace(/`(.+?)`/g, '<code>$1</code>');
+  
+  return processed;
+};
+
 export function BlogPostPage() {
   const { postId } = useParams<{ postId: string }>();
   const post = blogPosts.find(p => p.id === postId);
@@ -130,12 +291,9 @@ export function BlogPostPage() {
 
           {/* Article Content */}
           <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
-            <div
-              className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-blue-600 prose-pre:bg-gray-50 prose-blockquote:border-l-blue-500 prose-blockquote:text-gray-600"
-              dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br>').replace(/#{1,6}\s/g, (match) => {
-                const level = match.trim().length;
-                return `<h${level}>`;
-              }) }}
+            <div 
+              className="prose prose-lg prose-indigo max-w-none prose-headings:font-semibold prose-headings:text-gray-900 prose-headings:mt-8 prose-headings:mb-4 prose-p:leading-relaxed prose-p:text-gray-700 prose-p:mb-6 prose-ul:my-4 prose-ol:my-4 prose-li:mb-2 prose-li:text-gray-700 prose-li:leading-relaxed prose-strong:text-gray-900 prose-em:text-indigo-600 prose-code:text-pink-600 prose-code:bg-pink-50 prose-code:px-1 prose-code:rounded prose-blockquote:border-l-4 prose-blockquote:border-indigo-500 prose-blockquote:bg-indigo-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:my-6 prose-blockquote:text-gray-700 prose-blockquote:italic prose-hr:border-gray-200 prose-hr:my-8"
+              dangerouslySetInnerHTML={parseMarkdownContent(post.content)}
             />
           </div>
 
